@@ -37,6 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
+    'drf_spectacular',
+    'rest_framework',
+    'mptt',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -47,7 +52,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+] 
 
 ROOT_URLCONF = 'blog_api.urls'
 
@@ -69,6 +79,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'blog_api.wsgi.application'
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Blog API',
+    'DESCRIPTION': 'Blog API Description',
+    'VERSION': 'v1',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
