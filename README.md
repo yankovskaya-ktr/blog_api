@@ -13,7 +13,7 @@
 
 ### Swagger
 
-http://{{host}}/swagger/
+baseurl/swagger/
 
 ### Запуск проекта:
   
@@ -31,7 +31,7 @@ http://{{host}}/swagger/
 Запустить приложение:
 
 ``` 
-> docker-compose up
+> docker-compose up -d
 ``` 
 Провести миграции:
 
