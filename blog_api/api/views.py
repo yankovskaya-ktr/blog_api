@@ -12,14 +12,22 @@ class ListCreateViewSet(mixins.ListModelMixin,
     pass
 
 
+@extend_schema_view(
+    list=extend_schema(description='Получить все посты', tags=['posts']),
+    create=extend_schema(description='Создать пост', tags=['posts'])
+)
 class PostViewSet(ListCreateViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['comments']),
-    create=extend_schema(tags=['comments'])
+    list=extend_schema(
+        description='Получить комментарии к посту до 3-его уровня вложенности',
+        tags=['comments']
+    ),
+    create=extend_schema(description='Создать комментарий к посту',
+                         tags=['comments'])
 )
 class CommentViewSet(ListCreateViewSet):
     """
@@ -40,8 +48,12 @@ class CommentViewSet(ListCreateViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['threads']),
-    create=extend_schema(tags=['threads'])
+    list=extend_schema(
+        description='Получить все вложенные комментарии для родительского',
+        tags=['threads']
+    ),
+    create=extend_schema(description='Ответить на комментарий',
+                         tags=['threads'])
 )
 class ThreadViewSet(ListCreateViewSet):
     """
