@@ -13,7 +13,7 @@
 
 ### Swagger
 
-http://<host>/swagger/
+http://{{host}}/swagger/
 
 ### Запуск проекта:
   
