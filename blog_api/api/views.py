@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, viewsets
@@ -23,13 +21,6 @@ class ListCreateViewSet(mixins.ListModelMixin,
 class PostViewSet(ListCreateViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-
-
-def make_children_dict(queryset):
-    children = defaultdict(list)
-    for comment in queryset:
-        children[comment.pk] = comment.children
-    pass
 
 
 @extend_schema_view(
