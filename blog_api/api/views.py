@@ -1,9 +1,13 @@
+from collections import defaultdict
+
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, viewsets
+from rest_framework.response import Response
 
 from .models import Comment, Post
-from .serializers import CommentSerializer, PostSerializer
+from .serializers import (CommentCreateSerializer, CommentListSerializer,
+                          PostSerializer)
 
 
 class ListCreateViewSet(mixins.ListModelMixin,
@@ -21,6 +25,13 @@ class PostViewSet(ListCreateViewSet):
     serializer_class = PostSerializer
 
 
+def make_children_dict(queryset):
+    children = defaultdict(list)
+    for comment in queryset:
+        children[comment.pk] = comment.children
+    pass
+
+
 @extend_schema_view(
     list=extend_schema(
         description='Получить комментарии к посту до 3-его уровня вложенности',
@@ -33,13 +44,28 @@ class CommentViewSet(ListCreateViewSet):
     """
     Операции с комментариями в привязке к посту.
     """
-    serializer_class = CommentSerializer
+    queryset = Comment.objects.all()
 
-    def get_queryset(self):
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CommentListSerializer
+        return CommentCreateSerializer
+
+    def list(self, request, *args, **kwargs):
         # Получение комментариев до 3-его уровня вложенности
         post_id = self.kwargs.get('post_id')
         post = get_object_or_404(Post, id=post_id)
-        return post.comments.filter(level__lte=3).prefetch_related('children')
+        queryset = post.comments.filter(
+            level__lte=2).prefetch_related('children')
+
+        children = {comment.pk: comment.children for comment in queryset}
+
+        serializer = self.get_serializer(
+            post.comments.filter(level__lte=0),
+            many=True,
+            context={'children': children}
+        )
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         post_id = self.kwargs.get('post_id')
@@ -59,13 +85,27 @@ class ThreadViewSet(ListCreateViewSet):
     """
     Операции с комментариями в привязке к родительскому комментарию.
     """
-    serializer_class = CommentSerializer
+    queryset = Comment.objects.all()
 
-    def get_queryset(self):
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CommentListSerializer
+        return CommentCreateSerializer
+
+    def list(self, request, *args, **kwargs):
         # Получение всех вложенных комментариев
         parent_id = self.kwargs.get('parent_id')
         parent = get_object_or_404(Comment, id=parent_id)
-        return parent.get_descendants().prefetch_related('children')
+        queryset = parent.get_descendants().prefetch_related('children')
+
+        children = {comment.pk: comment.children for comment in queryset}
+
+        serializer = self.get_serializer(
+            parent.get_children(),
+            many=True,
+            context={'children': children}
+        )
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         parent_id = self.kwargs.get('parent_id')

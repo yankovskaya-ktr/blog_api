@@ -10,9 +10,25 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('id', 'text', 'post', 'parent', 'children', 'level')
-        read_only_fields = ('post', 'parent', 'children', 'level')
+        fields = ('id', 'text', 'post', 'level', 'parent', 'children')
+        read_only_fields = ('post', 'level', 'parent', 'children')
         model = Comment
+
+
+class CommentListSerializer(serializers.ModelSerializer):
+
+    children = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ('id', 'text', 'post', 'level', 'parent', 'children')
+        read_only_fields = ('post', 'level', 'parent', 'children')
+        model = Comment
+
+    def get_children(self, obj):
+        children = self.context['children'].get(obj.id, [])
+        serializer = CommentListSerializer(
+            children, many=True, context=self.context)
+        return serializer.data
